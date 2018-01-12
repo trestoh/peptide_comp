@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
+#include <functional>
 
 int main(int argc, char* argv[])
 {
@@ -27,6 +28,8 @@ int main(int argc, char* argv[])
 	
 	std::vector<std::string> perc_peptides;
 	std::vector<std::string> rts_peptides;
+	std::vector<int> perc_scan;
+	std::vector<int> rts_scan;
 
 	std::getline(perc_in, line);
 
@@ -36,8 +39,10 @@ int main(int argc, char* argv[])
 		if (!(iss >> junk >> scan >> junk >> junk >> junk >> junk >> junk >> q_val >> junk >> junk >> peptide)) { break; } // error
 
 		if (q_val < .01)
+		{
 			perc_peptides.push_back(peptide);
-
+			perc_scan.push_back(scan);
+		}
 		//perc_out << peptide << std::endl;
 	}
 
@@ -49,23 +54,67 @@ int main(int argc, char* argv[])
 	while (std::getline(rts_in, line))
 	{
 		std::istringstream iss(line);
-		if (!(iss >> peptide)) { break; }
+		if (!(iss >> scan >> peptide)) { break; }
 
 		rts_peptides.push_back(peptide);
+		rts_scan.push_back(scan);
 
 	}
 
-	std::unordered_map<std::string, bool> in_rts;
-	std::unordered_map<std::string, bool> in_perc;
+	std::string smart_params;
+	for (int i = 0; i < xcorr1.length(); i++)
+		if (xcorr1[i] != '.')
+			smart_params.push_back(xcorr1[i]);
+
+	for (int i = 0; i < xcorr2.length(); i++)
+		if (xcorr2[i] != '.')
+			smart_params.push_back(xcorr2[i]);
+
+	for (int i = 0; i < xcorr3.length(); i++)
+		if (xcorr3[i] != '.')
+			smart_params.push_back(xcorr3[i]);
+
+	for (int i = 0; i < deltacn.length(); i++)
+		if (deltacn[i] != '.')
+			smart_params.push_back(deltacn[i]);
+
+	//perc_out << "Param combo is: " << smart_params << std::endl;
+
+	std::string params = xcorr1 + xcorr2 + xcorr3 + deltacn;
+	std::size_t slug = std::hash<std::string>{}(params);
+
+	slug = slug >> 48;
+
+	//std::string tag = std::to_string(slug);
+
+	std::string tag = smart_params;
+
+	std::string false_hit_out = argv[3] + std::string("/false_hits_") + tag + std::string(".txt");
+	std::string miss_target_out = argv[3] + std::string("/missed_targets_") + tag + std::string(".txt");
+
+	std::ofstream false_out;
+	false_out.open(false_hit_out, std::ios_base::app);
+
+	std::ofstream target_out;
+	target_out.open(miss_target_out, std::ios_base::app);
+
+	//perc_out << "Slug is: " << slug << " with byte size: " << sizeof(size_t) << std::endl;
+
+	false_out << "Params are: " << xcorr1 << " " << xcorr2 << " " << xcorr3 << " " << deltacn << std::endl;
+	target_out << "Params are: " << xcorr1 << " " << xcorr2 << " " << xcorr3 << " " << deltacn << std::endl;
+
+
+	std::unordered_map<std::string, int> in_rts;
+	std::unordered_map<std::string, int> in_perc;
 	
 	for (int i = 0; i < rts_peptides.size(); i++)
 	{
-		in_rts.insert({ rts_peptides[i], true });
+		in_rts.insert({ rts_peptides[i], rts_scan[i] });
 	}
 
 	for (int i = 0; i < perc_peptides.size(); i++)
 	{
-		in_perc.insert({ perc_peptides[i], true });
+		in_perc.insert({ perc_peptides[i], perc_scan[i] });
 	}
 
 	int wrong_rts = 0;
@@ -77,6 +126,7 @@ int main(int argc, char* argv[])
 		auto search = in_perc.find(find_me);
 		if (search == in_perc.end())
 		{
+			false_out << rts_scan[i] << '\t' << rts_peptides[i] << std::endl;
 			//perc_out << "Peptide: " << rts_peptides[i] << " in RTS but not Percolator" << std::endl;
 			wrong_rts++;
 		}
@@ -88,6 +138,7 @@ int main(int argc, char* argv[])
 		auto search = in_rts.find(find_me);
 		if (search == in_rts.end())
 		{
+			target_out << perc_scan[i] << '\t' << perc_peptides[i] << std::endl;
 			//perc_out << "Peptide: " << perc_peptides[i] << " in Percolator but not RTS" << std::endl;
 			missed_targets++;
 		}

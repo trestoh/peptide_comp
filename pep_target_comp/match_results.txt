@@ -1,1 +1,12 @@
 We had 22 false positives over Percolator and 2918 targets missed from percolator
+Parmeters: (1.3, 1.8, 2, 0.08) with 865 false positives over Percolator and 164 targets missed from percolator
+Slug is: 8727187407095732813 with byte size: 8
+Parmeters: (1.3, 1.8, 2, 0.08) with 865 false positives over Percolator and 164 targets missed from percolator
+Slug is: 31005 with byte size: 8
+Parmeters: (1.3, 1.8, 2, 0.08) with 865 false positives over Percolator and 164 targets missed from percolator
+Parmeters: (1.3, 1.8, 2, 0.08) with 865 false positives over Percolator and 164 targets missed from percolator
+Param combo is: 13182008
+Parmeters: (1.3, 1.8, 2, 0.08) with 865 false positives over Percolator and 164 targets missed from percolator
+Param combo is: 13182008
+Parmeters: (1.3, 1.8, 2, 0.08) with 865 false positives over Percolator and 164 targets missed from percolator
+Parmeters: (1.3, 1.8, 2, 0.08) with 865 false positives over Percolator and 164 targets missed from percolator
