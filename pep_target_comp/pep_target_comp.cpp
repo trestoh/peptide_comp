@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 	std::ifstream perc_in(argv[1]);
 	std::ifstream rts_in(argv[2]);
 
-	std::string output = argv[3] + std::string("/match_results.txt");
+	std::string output = argv[3] + std::string("/match_summary.txt");
 
 	std::ofstream perc_out;
 	perc_out.open(output, std::ios_base::app);
@@ -144,8 +144,15 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	perc_out << "Parmeters: (" << xcorr1 << ", " << xcorr2 << ", " << xcorr3 << ", " << deltacn << ") with "
-		<< wrong_rts << " false positives over Percolator and " << missed_targets << " targets missed from percolator" << std::endl;
+	//perc_out << "Parmeters: (" << xcorr1 << ", " << xcorr2 << ", " << xcorr3 << ", " << deltacn << ") with "
+	//	<< wrong_rts << " false positives over Percolator and " << missed_targets << " targets missed from percolator" << std::endl;
+
+	double pct_over = (double)wrong_rts / (double)perc_peptides.size();
+	double pct_under = 1 - (double)(perc_peptides.size() - missed_targets) / (double)perc_peptides.size();
+
+	perc_out << xcorr1 << "\t" << xcorr2 << "\t" << xcorr3 << "\t" << deltacn << "\t" << missed_targets 
+		<< "\t" << wrong_rts << "\t" << pct_under << "\t" << pct_over << std::endl ;
+
 
 	//std::sort(peptides.begin(), peptides.end());
 
