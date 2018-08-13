@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <functional>
+#include <iostream>
 
 int main(int argc, char* argv[])
 {
@@ -17,8 +18,21 @@ int main(int argc, char* argv[])
 
 	std::string output = argv[3] + std::string("/match_summary.txt");
 
+
+	std::string master_out_name = std::string("C:/dev/workspace/master_match.txt");
+
 	std::ofstream perc_out;
+	std::ofstream master_out;
+
 	perc_out.open(output, std::ios_base::app);
+	master_out.open(master_out_name, std::ios_base::app);
+
+	if (argc > 3)
+	{
+		std::string file_name = argv[4];
+		std::cout << "File name is: " << file_name << std::endl;
+		master_out << file_name << "\t";
+	}
 
 	std::string junk;
 	std::string line;
@@ -152,6 +166,9 @@ int main(int argc, char* argv[])
 
 	perc_out << xcorr1 << "\t" << xcorr2 << "\t" << xcorr3 << "\t" << deltacn << "\t" << missed_targets 
 		<< "\t" << wrong_rts << "\t" << pct_under << "\t" << pct_over << std::endl ;
+
+	master_out << xcorr1 << "\t" << xcorr2 << "\t" << xcorr3 << "\t" << deltacn << "\t" << missed_targets
+		<< "\t" << wrong_rts << "\t" << pct_under << "\t" << pct_over << std::endl;
 
 
 	//std::sort(peptides.begin(), peptides.end());
