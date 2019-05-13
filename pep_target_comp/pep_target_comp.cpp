@@ -17,23 +17,26 @@ int main(int argc, char* argv[])
 	std::ifstream rts_in(argv[2]);
 
 	std::string output = argv[3] + std::string("/match_summary.txt");
-
+	std::string scan_no_out = argv[3] + std::string("/high_conf_scans.txt");
 
 	std::string master_out_name = std::string("C:/dev/workspace/master_match.txt");
 
 	std::ofstream perc_out;
 	std::ofstream master_out;
+	std::ofstream scan_out;
 
 	perc_out.open(output, std::ios_base::app);
 	master_out.open(master_out_name, std::ios_base::app);
+	scan_out.open(scan_no_out, std::ios_base::app);
 
+	/*
 	if (argc > 3)
 	{
 		std::string file_name = argv[4];
 		std::cout << "File name is: " << file_name << std::endl;
 		master_out << file_name << "\t";
 	}
-
+	*/
 	std::string junk;
 	std::string line;
 	std::string peptide;
@@ -44,6 +47,7 @@ int main(int argc, char* argv[])
 	std::vector<std::string> rts_peptides;
 	std::vector<int> perc_scan;
 	std::vector<int> rts_scan;
+	std::vector<int> high_conf_scans;
 
 	std::getline(perc_in, line);
 
@@ -117,7 +121,7 @@ int main(int argc, char* argv[])
 	false_out << "Params are: " << xcorr1 << " " << xcorr2 << " " << xcorr3 << " " << deltacn << std::endl;
 	target_out << "Params are: " << xcorr1 << " " << xcorr2 << " " << xcorr3 << " " << deltacn << std::endl;
 
-
+	/*
 	std::unordered_map<std::string, int> in_rts;
 	std::unordered_map<std::string, int> in_perc;
 	
@@ -130,10 +134,27 @@ int main(int argc, char* argv[])
 	{
 		in_perc.insert({ perc_peptides[i], perc_scan[i] });
 	}
+	*/
+
+	std::unordered_map<int, std::string> in_rts;
+	std::unordered_map<int, std::string> in_perc;
+
+	for (int i = 0; i < rts_peptides.size(); i++)
+	{
+		in_rts.insert({ rts_scan[i], rts_peptides[i] });
+	}
+
+	for (int i = 0; i < perc_peptides.size(); i++)
+	{
+		in_perc.insert({ perc_scan[i], perc_peptides[i] });
+	}
 
 	int wrong_rts = 0;
 	int missed_targets = 0;
+	int match = 0;
+	int rev_match = 0;
 
+	/*
 	for (int i = 0; i < rts_peptides.size(); i++)
 	{
 		std::string find_me = rts_peptides[i];
@@ -144,7 +165,14 @@ int main(int argc, char* argv[])
 			//perc_out << "Peptide: " << rts_peptides[i] << " in RTS but not Percolator" << std::endl;
 			wrong_rts++;
 		}
+
+		else
+			match++;
+
 	}
+
+
+	std::cout << "There are " << match << " matches" << std::endl;
 
 	for (int i = 0; i < perc_peptides.size(); i++)
 	{
@@ -157,6 +185,50 @@ int main(int argc, char* argv[])
 			missed_targets++;
 		}
 	}
+	*/
+
+	for (int i = 0; i < rts_scan.size(); i++)
+	{
+		int find_me = rts_scan[i];
+		auto search = in_perc.find(find_me);
+		if (search == in_perc.end() || (*search).second != rts_peptides[i])
+		{
+			false_out << rts_scan[i] << '\t' << rts_peptides[i] << std::endl;
+			//std::cout << rts_scan[i] << '\t' << rts_peptides[i] << std::endl;
+			//perc_out << "Peptide: " << rts_peptides[i] << " in RTS but not Percolator" << std::endl;
+			wrong_rts++;
+		}
+
+		else
+		{
+			match++;
+			high_conf_scans.push_back(find_me);
+		}
+	}
+
+
+	for (int j = 0; j < high_conf_scans.size(); j++)
+		scan_out << high_conf_scans[j] << std::endl;
+
+
+	for (int i = 0; i < perc_scan.size(); i++)
+	{
+		int find_me = perc_scan[i];
+		auto search = in_rts.find(find_me);
+		if (search == in_rts.end() || (*search).second != perc_peptides[i])
+		{
+			target_out << perc_scan[i] << '\t' << perc_peptides[i] << std::endl;
+			//std::cout << "Mismatch: " << perc_scan[i] << '\t' << perc_peptides[i] << " vs. " << (*search).second << std::endl;
+			//perc_out << "Peptide: " << perc_peptides[i] << " in Percolator but not RTS" << std::endl;
+			missed_targets++;
+		}
+
+		else
+			rev_match++;
+
+	}
+
+	std::cout << "There are " << match << " matches and " << rev_match << " reverse matches"<< std::endl;
 
 	//perc_out << "Parmeters: (" << xcorr1 << ", " << xcorr2 << ", " << xcorr3 << ", " << deltacn << ") with "
 	//	<< wrong_rts << " false positives over Percolator and " << missed_targets << " targets missed from percolator" << std::endl;
